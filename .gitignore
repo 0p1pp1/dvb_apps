@@ -1,0 +1,14 @@
+*.o
+*.d
+*~
+!/cmds/Makefile
+/cmds/dumpeid
+/cmds/dumpts
+/cmds/dumpts2
+/cmds/fixpat
+/cmds/fixpcr
+/cmds/jzap
+/cmds/nitdump
+/cmds/ptsdump
+/cmds/restamp
+/cmds/s2scan

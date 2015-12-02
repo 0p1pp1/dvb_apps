@@ -59,7 +59,7 @@ class CLI_Main:
 
 	def dprint(self, txt):
 		if self.verbose:
-			print >> sys.stderr, time.strftime("%Y-%m-%d %H:%M.%S"), txt
+			print(time.strftime("%Y-%m-%d %H:%M.%S") + txt, file=sys.stderr)
 
 	def quit(self):
 		self.pipeline.set_state(Gst.State.NULL)
@@ -70,12 +70,12 @@ class CLI_Main:
 	def on_message(self, bus, message):
 		t = message.type
 		if t == Gst.MessageType.EOS:
-			print >> sys.stderr, time.ctime(), \
-				"Finished by unexpected EOS."
+			print(time.ctime() + "Finished by unexpected EOS.",
+				file=sys.stderr)
 			self.quit()
 		elif t == Gst.MessageType.ERROR:
 			(err, debug) = message.parse_error()
-			print >> sys.stderr, time.ctime(), "Error: %s" % err
+			print(time.ctime() + "Error: %s" % err, file=sys.stderr)
 			self.quit()
 		elif t == Gst.MessageType.ELEMENT:
 			self.proc_eit(message)
@@ -339,9 +339,10 @@ class CLI_Main:
 					sid = self.svc_id / 10 * 10
 				ch = check_channel(None, sid, fname)[0]
 			if ch is None:
-				print >> sys.stderr, time.ctime(), \
+				print(time.ctime() + \
 					"Failed to find the channel name for sid:" \
-					"{0:d} in channels.conf".format(self.svc_id)
+					"{0:d} in channels.conf".format(self.svc_id),
+					file=sys.stderr)
 				self.quit()
 				return
 			self.pipeline.get_by_name("dvbbasebin").set_uri("dvb://%s" % ch)
@@ -397,8 +398,8 @@ class CLI_Main:
 	def on_timer(self):
 		if self.found_ev:
 			return False
-		print >> sys.stderr, time.ctime(), \
-			"Cannot find the event. giving up..."
+		print(time.ctime() + "Cannot find the event. giving up...",
+			file=sys.stderr)
 		self.quit()
 		return False
 

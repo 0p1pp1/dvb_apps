@@ -35,16 +35,16 @@ class CLI_Main:
 	def on_message(self, bus, message):
 		t = message.type
 		if t == Gst.MessageType.EOS:
-			print >> sys.stderr, "Finished by unexpected EOS."
+			print("Finished by unexpected EOS.", file=sys.stderr)
 			self.quit()
 		elif t == Gst.MessageType.ERROR:
 			err, debug = message.parse_error()
-			print >> sys.stderr, "Error: %s" % err
+			print("Error: %s" % err, file=sys.stderr)
 			self.quit()
 
 	def dprint(self, txt):
 		if self.verbose:
-			print >> sys.stderr, txt
+			print(txt, file=sys.stderr)
 
 	def quit(self):
 		self.pipeline.set_state(Gst.State.NULL)
@@ -68,10 +68,10 @@ class CLI_Main:
 		else:
 			now = time.time()
 			if self.start_time - now > 3600 * 6:
-				print >> sys.stderr, "start time is too ditant future. quiting..."
+				print("start time is too ditant future. quiting...", file=sys.stderr)
 				self.playmode = False
 			elif now - self.start_time > 3600 * 4:
-				print >> sys.stderr, "start time is too distant past. quiting..."
+				print("start time is too distant past. quiting...", file=sys.stderr)
 				self.playmode = False
 			elif now - self.start_time > -1:
 				self.dprint("already past the start time.")

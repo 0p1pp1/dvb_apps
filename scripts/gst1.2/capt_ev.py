@@ -4,34 +4,50 @@ import os.path
 import glib
 import gi
 import gi.module
-gi.require_version('Gst', '1.2')
-from gi.repository import GObject, Gst, GLib
+gi.require_version('Gst', '1.0')
+gi.require_version('GstMpegts', '1.0')
+from gi.repository import GLib, GObject, Gst, GstMpegts
 
 def proc_msg(message):
-	eit = message.get_structure()
-	if eit is None or eit.get_name() != 'eit':
+	st = message.get_structure()
+	if st is None or not st.has_name('eit'):
 		return
-	events = eit.get_value('events')
-	if events is None:
+
+	try:
+		sec = GstMpegts.message_parse_mpegts_section(message)
+		eit = sec.get_eit()
+		events = eit.events
+	except (AttributeError, KeyError):
 		sys.stderr.write('******* no events included.\n')
 		return
-	for i in range(0, events.len()):
-		title = events.index(i).get_string('name')
-		if False and eit.get_boolean('present-following')[1] and \
-		   eit.get_boolean('actual-transport-stream')[1] and \
-		   eit.get_uint('section-number')[1] == 0 and \
-		   title is not None:
-			print title
-			print events.index(i).get_string('description')
 
-		items = events.index(i).get_value('extended-items')
-		if items is None:
-			# sys.stderr.write('======== no ext. event desc.\n')
-			continue
-		for j in range(0, items.len()):
-			print items.index(j).get_string('description'), ':'
-			print items.index(j).get_string('text')
-			print
+	for ev in events:
+		d = GstMpegts.find_descriptor(ev.descriptors,
+					      GstMpegts.DVBDescriptorType.SHORT_EVENT)
+		try:
+			(title, txt) = d.parse_dvb_short_event()[2:4]
+
+			if eit.present_following and \
+			   eit.actual_stream and \
+			   sec.section_number == 0 and \
+			   title is not None:
+				print(title)
+				print(txt)
+				print()
+		except (AttributeError, TypeError):
+			pass
+
+		d = GstMpegts.find_descriptor(ev.descriptors,
+					      GstMpegts.DVBDescriptorType.EXTENDED_EVENT)
+		try:
+			for desc in d.parse_dvb_extended_event():
+				for item in desc.items:
+					print(item.item_descripton + ':')
+					print(item.item)
+					print()
+		except AttributeError:
+			pass
+
 
 def on_message(bus, message):
 	t = message.type

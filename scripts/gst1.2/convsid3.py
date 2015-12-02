@@ -4,11 +4,11 @@ import os.path
 from optparse import OptionParser
 import xdg.BaseDirectory
 
-gst_ver = (1, 0)
+gst_ver = 1
 
 def check_channel(chname, progid, confname):
 	if confname is None:
-		if os.environ.has_key('GST_DVB_CHANNELS_CONF'):
+		if os.environ.get('GST_DVB_CHANNELS_CONF'):
 			confname = os.environ['GST_DVB_CHANNELS_CONF']
 		else:
 			confname = os.path.join(xdg.BaseDirectory.xdg_config_home,
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 			% (options.channel, options.serviceid))
 
 	if options.channel:
-		print sid
+		print(sid)
 	else:
-		print ch_name
+		print(ch_name)
 

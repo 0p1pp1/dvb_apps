@@ -13,6 +13,7 @@ import os.path
 import xdg.BaseDirectory
 import gi
 gi.require_version('Gst', '1.0')
+gi.require_version('GstMpegts', '1.0')
 from gi.repository import GObject, Gst, GLib, GstMpegts
 
 GObject.threads_init()
@@ -375,8 +376,8 @@ class CLI_Main:
 			self.dprint("Paused recording...")
 		else:
 			if self.ev_id == self.eit_eid_present:
-				title = self.eit_name_present 
- 			else:
+				title = self.eit_name_present
+			else:
 				title = self.eit_name_following
 			self.dprint("Start recording event:%d (title: %s)..." % \
 			     (self.ev_id, title))
@@ -412,7 +413,7 @@ class CLI_Main:
 #
 def check_channel(chname, progid, confname):
 	if confname is None:
-		if os.environ.has_key('GST_DVB_CHANNELS_CONF'):
+		if os.environ.get('GST_DVB_CHANNELS_CONF'):
 			confname = os.environ['GST_DVB_CHANNELS_CONF']
 		else:
 			confname = os.path.join (xdg.BaseDirectory.xdg_config_home,
@@ -502,7 +503,7 @@ try:
 		try:
 			d = os.path.dirname(options.filename);
 			if d != "" and not os.path.isdir(d):
-				os.makedirs(d, 0755)
+				os.makedirs(d, 0o755)
 			f = open(options.filename, 'wb')
 			mainclass.pipeline.get_by_name("fdsink").set_property("fd", f.fileno())
 		except:

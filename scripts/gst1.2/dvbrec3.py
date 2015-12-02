@@ -90,7 +90,7 @@ class CLI_Main:
 #
 def check_channel(chname, progid, confname):
 	if confname is None:
-		if os.environ.has_key('GST_DVB_CHANNELS_CONF'):
+		if os.environ.get('GST_DVB_CHANNELS_CONF'):
 			confname = os.environ['GST_DVB_CHANNELS_CONF']
 		else:
 			confname = os.path.join (xdg.BaseDirectory.xdg_config_home,
@@ -162,6 +162,7 @@ parser.add_option("-t", "--start",
 
 (options, args) = parser.parse_args()
 mainclass = None
+ch_name = None
 try:
 	mainclass = CLI_Main()
 	mainclass.verbose = options.verbose
@@ -173,7 +174,7 @@ try:
 		try:
 			d = os.path.dirname(options.filename);
 			if d != "" and not os.path.isdir(d):
-				os.makedirs(d, 0755)
+				os.makedirs(d, 0o755)
 			f = open(options.filename, 'w')
 			mainclass.pipeline.get_by_name("fdsink").set_property("fd", f.fileno())
 		except:
@@ -208,5 +209,6 @@ try:
 except:
 	if mainclass:
 		mainclass.quit()
-	print >> sys.stderr, "dvb://%s" % ch_name
-	print >> sys.stderr, "aborted by:%s, %s" % sys.exc_info()[0:2]
+	if ch_name is not None:
+		print("dvb://%s" % ch_name, file=sys.stderr)
+	print("aborted by:%s, %s" % sys.exc_info()[0:2], file=sys.stderr)

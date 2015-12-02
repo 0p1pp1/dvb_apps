@@ -5,10 +5,13 @@ now=${now% ?*}
 
 # UNINST_CMD="~/bin/gst-1.0"
 UNINST_CMD=
+DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
+DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
+DVB_CMDS_DIR=${DVB_CMDS_DIR:-"$DVB_APPS_BASEDIR"/cmds}
 
-DVBEVREC=${DVBEVREC:-~/bin/dvb_apps/scripts/gst1.2/dvbevrec3.py}
-GETEID=${GETEID:-~/bin/dvb_apps/cmds/dumpeid}
-CONVSID=${CONVSID:-~/bin/dvb_apps/scripts/gst1.2/convsid3.py}
+DVBEVREC=${DVBEVREC:-"$DVB_SCRIPTS_DIR"/dvbevrec3.py}
+GETEID=${GETEID:-"$DVB_CMDS_DIR"/dumpeid}
+CONVSID=${CONVSID:-"$DVB_SCRIPTS_DIR"/convsid3.py}
 
 #default param
 ADAPTER=0

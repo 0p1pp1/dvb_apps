@@ -5,8 +5,9 @@ now=${now% ?*}
 
 # UNINST_CMD=~/bin/gst-1.0
 UNINST_CMD=
-
-DVBREC=${DVBREC:-~/bin/dvb_apps/scripts/gst1.2/dvbrec3.py}
+DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
+DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
+DVBREC=${DVBREC:-"$DVB_SCRIPTS_DIR"/dvbrec3.py}
 
 #default param
 ADAPTER=0

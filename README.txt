@@ -12,6 +12,15 @@ DVB用ツール集
 
 変更履歴
 ----------------
+ver1.2
+ scripts/gst1.2/
+ - gstreamer <= 1.6で動作するように修正
+ scripts/gst1.2/dvb_sched{_ev}3
+ - 内部で使用するヘルパースクリプトの場所のconfigを改良
+ cmds/
+ - gcc >= 5.2でのビルドエラー修正
+
+----------------
 ver1.1
  scripts/gst1.2/
  - gstreamer 1.2系列用の移植 

@@ -5,7 +5,7 @@ scripts/gst0.10/*
  録画にはgstreamer 0.10 のISDB用パッチ当て版を用いる。
 
 scripts/gst1.2/*
- 上記と同じスクリプトをgstreamer 1.2系に対応させたもの。
+ 上記と同じスクリプトをgstreamer 1.x系に対応させたもの。
  各スクリプトの使い方は、（末尾の3を除いた）同名の0.10系用バージョンと同じ。
 
 ---------------
@@ -126,14 +126,7 @@ dvbevrec2.py/dvbevrec3.py
 
 --------------
 
-scripts/tsdump
-  TSパケットのHEXダンプを表示する.デバッグ用
-  ex. tsdump < foo.ts | lv
-
--------------
-
-scripts/dropchk
-  ../cmds/build/dumptsの出力をチェックし,パケット落ちを表示する
-  ex. dumpts < foo.ts | grep '^0100' | dropchk | grep '-------' | wc
-  パケットのCCカウンタの飛びがあれば ---------- を出力する.
-
+capt_ev.py
+  TSファイルやDVBデバイスからのライブ出力から、現在の番組情報を表示する
+  ex1. capt_ev.py dvb://NHK
+  ex2. capt_ev.py foo.ts

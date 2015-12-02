@@ -523,7 +523,7 @@ try:
 		if options.wait is None:
 			options.wait = 3
 
-	if options.eventid and ev_id < 0 or ev_id >= 0x10000:
+	if options.eventid and (ev_id < 0 or ev_id >= 0x10000):
 		parser.error("invalid event_id:%d." % ev_id)
 	mainclass.ev_id = ev_id
 

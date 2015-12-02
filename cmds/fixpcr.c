@@ -13,7 +13,7 @@
 #define PTS_THRESHOLD (45000 * 300)
 
 // returns (a - b), considering the PTS round over
-inline uint64_t
+uint64_t
 pts_diff(uint64_t a, uint64_t b)
 {
 	if (a < b)
@@ -21,7 +21,7 @@ pts_diff(uint64_t a, uint64_t b)
 	return a - b;
 }
 
-inline uint64_t
+uint64_t
 get_pcr(unsigned char *p)
 {
 	uint64_t base;
@@ -35,7 +35,7 @@ get_pcr(unsigned char *p)
 	return base * 300 + ext;
 }
 
-inline uint64_t
+uint64_t
 get_pts(unsigned char *p)
 {
 	return (((uint64_t)(p[0] & 0x0e) << 29) | ((uint64_t)p[1] << 22) |
@@ -43,7 +43,7 @@ get_pts(unsigned char *p)
 		((uint64_t)p[4] >> 1));
 }
 
-inline void
+void
 set_pts(unsigned char *p, uint64_t val)
 {
 	p[0] &= 0xf1;
@@ -54,7 +54,7 @@ set_pts(unsigned char *p, uint64_t val)
 	p[4] = ((val << 1) & 0xfe) + 1;
 }
 
-inline void
+void
 print_pts(uint64_t pts)
 {
 	fprintf(stderr, "%#09" PRIx64, pts / 300);

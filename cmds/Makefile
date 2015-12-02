@@ -1,5 +1,3 @@
-CFLAGS = -std=gnu90
-
 PROGRAMS = nitdump dumpts dumpts2 s2scan ptsdump restamp dumpeid fixpat fixpcr jzap
 
 all: $(PROGRAMS)

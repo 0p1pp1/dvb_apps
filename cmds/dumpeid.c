@@ -61,7 +61,7 @@ struct evinfo {
 
 struct evinfo Result = { 0 };
 
-static inline int
+static int
 bcd2int(uint8_t v)
 {
 	return ((v & 0xf0) >> 4) * 10 + (v & 0x0f);

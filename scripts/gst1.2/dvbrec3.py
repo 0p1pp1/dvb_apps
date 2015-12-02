@@ -94,7 +94,7 @@ def check_channel(chname, progid, confname):
 			confname = os.environ['GST_DVB_CHANNELS_CONF']
 		else:
 			confname = os.path.join (xdg.BaseDirectory.xdg_config_home,
-				"gstreamer-%d.%d" % Gst.version()[0:2],
+				"gstreamer-%d.0" % Gst.version()[0],
 				"dvb-channels.conf")
 
 	with open(confname) as f:
@@ -151,8 +151,8 @@ parser.add_option("-f", "--frontend",
 parser.add_option("--conf",
 					metavar="FILE",
 					help="path to the channel config file. "
-					" [default:~/.config/gstreamer-%d.%d/"
-					"dvb-channels.conf]" % Gst.version()[0:2])
+					" [default:~/.config/gstreamer-%d.0/"
+					"dvb-channels.conf]" % Gst.version()[0])
 
 parser.add_option("-t", "--start",
 					metavar="TIME",

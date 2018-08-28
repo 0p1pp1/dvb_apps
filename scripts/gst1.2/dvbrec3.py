@@ -10,7 +10,7 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst, GLib
 
-GObject.threads_init()
+# GObject.threads_init()
 Gst.init(None)
 
 from optparse import OptionParser

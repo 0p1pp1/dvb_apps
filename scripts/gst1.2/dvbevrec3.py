@@ -16,7 +16,7 @@ gi.require_version('Gst', '1.0')
 gi.require_version('GstMpegts', '1.0')
 from gi.repository import GObject, Gst, GLib, GstMpegts
 
-GObject.threads_init()
+# GObject.threads_init()
 Gst.init(None)
 
 from optparse import OptionParser
@@ -59,7 +59,7 @@ class CLI_Main:
 
 	def dprint(self, txt):
 		if self.verbose:
-			print(time.strftime("%Y-%m-%d %H:%M.%S") + txt, file=sys.stderr)
+			print(time.strftime("%Y-%m-%d %H:%M.%S") + txt, file=sys.stderr, flush=True)
 
 	def quit(self):
 		self.pipeline.set_state(Gst.State.NULL)

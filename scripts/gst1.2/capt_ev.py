@@ -60,7 +60,7 @@ def on_message(bus, message):
 def on_pad_added(src, pad, sink):
 	pad.link(sink.get_static_pad('sink'))
 
-GObject.threads_init()
+# GObject.threads_init()
 Gst.init(None)
 
 if len(sys.argv) < 2:

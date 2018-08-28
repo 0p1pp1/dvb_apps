@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 					((uint64_t)(buf[16] & 0x80) >> 7);
 				print_pts(base, 0);
 			}
-			printf(" 0x%llx\n", ofs - sizeof(buf));
+			printf("    @%08llX\n", ofs - sizeof(buf));
 		}
 
 		if (!(buf[1] & 0x40) || !(buf[3] & 0x10) || (buf[1] & 0x80))
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!(p[7] & 0x20)) {
-			printf("\n");
+			printf("    @%08llX\n", ofs - sizeof(buf));
 			continue;
 		}
 		p += 9 + ((p[7] & 0x80) ? 5 : 0) + ((p[7] & 0x40) ? 5 : 0);

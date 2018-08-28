@@ -113,7 +113,7 @@ if [ $(($tm - 60)) -lt $(date +%s) ]; then
             ps -p $p -o cmd= | egrep -e "$CLEANUP" >&/dev/null && kill $p >&/dev/null
         done
     fi
-    $UNINST_CMD python "$DVBREC" "$CHOPT" "$OUTOPT" "$LENOPT" "${args[@]}" &
+    $UNINST_CMD python2 "$DVBREC" "$CHOPT" "$OUTOPT" "$LENOPT" "${args[@]}" &
     exit 0
 fi
 
@@ -139,6 +139,6 @@ if [ x'$CLEANUP' != x ]; then
         ps -p \$p -o cmd= | egrep -e '$CLEANUP' >& /dev/null && kill \$p >& /dev/null
     done
 fi
-$UNINST_CMD python "$DVBREC" "$CHOPT" "$OUTOPT" -t $STARTOPT \$LOPT ${args[@]}
+$UNINST_CMD python2 "$DVBREC" "$CHOPT" "$OUTOPT" -t $STARTOPT \$LOPT ${args[@]}
 EOT
 

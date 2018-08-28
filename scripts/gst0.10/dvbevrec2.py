@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # track a specified event (== program) and record it.
 #   temporal suspend/delay of the event is supported
 # if run with -c option, service_id arg can be set dummy(>0xFFFF)

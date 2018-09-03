@@ -29,6 +29,8 @@ while IFS=':' read -r name props sid; do
       fi
     elif [ $key = "ISDBS_TS_ID" ]; then
       key="STREAM_ID"
+    elif [ $key = "FREQUENCY" ]; then
+      value=$(($value + 10678000))
     fi
 
     echo -e -n "\t"

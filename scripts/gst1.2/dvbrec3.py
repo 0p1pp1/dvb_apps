@@ -26,6 +26,8 @@ class CLI_Main:
 		self.pipeline.add(fdsink)
 		dvb.get_request_pad("src0")
 		dvb.link(fdsink)
+		tsparse = dvb.get_by_name("mpegtsparse2-0")
+		tsparse.set_property("bcas", True)
 		self.verbose = False
 		self.start_time = None
 		bus = self.pipeline.get_bus()

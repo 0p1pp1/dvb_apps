@@ -1,4 +1,4 @@
-PROGRAMS = nitdump dumpts dumpts2 s2scan ptsdump restamp dumpeid fixpat fixpcr jzap
+PROGRAMS = nitdump dumpts dumpts2 s2scan ptsdump restamp dumpeid fixpat fixpat2 fixpcr jzap
 
 all: $(PROGRAMS)
 

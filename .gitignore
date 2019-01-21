@@ -12,3 +12,5 @@
 /cmds/ptsdump
 /cmds/restamp
 /cmds/s2scan
+/cmds/emmdump
+/cmds/fixpat2

@@ -4,7 +4,7 @@ today=${now#?* }
 now=${now% ?*}
 
 # UNINST_CMD=~/bin/gst-1.0
-UNINST_CMD=
+UNINST_CMD=/home/tsukada/bin/gst-uninst-ni
 DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
 DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
 DVBREC=${DVBREC:-"$DVB_SCRIPTS_DIR"/dvbrec3.py}
@@ -116,7 +116,7 @@ if [ $(($tm - 60)) -lt $(date +%s) ]; then
             ps -p $p -o cmd= | egrep -e "$CLEANUP" >&/dev/null && kill $p >&/dev/null
         done
     fi
-    $UNINST_CMD python "$DVBREC" "$CHOPT" "$OUTOPT" "$LENOPT" "${args[@]}" &
+    $UNINST_CMD python "$DVBREC" --shrink_pat "$CHOPT" "$OUTOPT" "$LENOPT" "${args[@]}" &
     exit 0
 fi
 
@@ -142,6 +142,6 @@ if [ x'$CLEANUP' != x ]; then
         ps -p \$p -o cmd= | egrep -e '$CLEANUP' >& /dev/null && kill \$p >& /dev/null
     done
 fi
-$UNINST_CMD python "$DVBREC" "$CHOPT" "$OUTOPT" -t $STARTOPT \$LOPT ${args[@]}
+$UNINST_CMD python "$DVBREC" --shrink_pat "$CHOPT" "$OUTOPT" -t $STARTOPT \$LOPT ${args[@]}
 EOT
 

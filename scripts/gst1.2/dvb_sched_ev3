@@ -4,7 +4,7 @@ today=${now#?* }
 now=${now% ?*}
 
 # UNINST_CMD="~/bin/gst-1.0"
-UNINST_CMD=
+UNINST_CMD=/home/tsukada/bin/gst-uninst-ni
 DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
 DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
 DVB_CMDS_DIR=${DVB_CMDS_DIR:-"$DVB_APPS_BASEDIR"/cmds}
@@ -121,7 +121,7 @@ fi
 if [ x"$NOQUERY" == x ] && [ x"$CH" != x ] && [ x"$SID" != x ] && \
    [ $tm -gt $(($now + 120)) -o $tm -lt $now ] ; then
     fuser -s "$FE_FILE" 2>/dev/null || \
-    EID=$($UNINST_CMD gst-launch-1.0 uridecodebin uri="dvb://${ADAPTER}@$CH?frontend=$FRONTEND" caps=video/mpegts \! fdsink 2>/dev/null | "$GETEID" -o -w 59 -p $SID -t "$TIME" $INFO 2> /dev/null && QUERIED=ok)
+    EID=$($UNINST_CMD gst-launch-1.0 uridecodebin uri="dvb://${ADAPTER}@$CH\?frontend=$FRONTEND" caps=video/mpegts \! fdsink 2>/dev/null | "$GETEID" -o -w 59 -p $SID -t "$TIME" $INFO 2> /dev/null && QUERIED=ok)
     if [ -n "$INFO" ]; then
         echo $EID | sed -e 's/^serviceID: .\+ duration: [0-9:]\+//' -e 's/ desc: .\+$//'
         EID=$(echo $EID | cut -s -d ' ' -f 4)
@@ -145,7 +145,7 @@ if [ $(($tm - 60)) -le $(date +%s) ]; then
             ps -p $p -o cmd= | egrep -e "$CLEANUP" >&/dev/null && kill $p >&/dev/null
         done
     fi
-    $UNINST_CMD python "$DVBEVREC" "$CHOPT" "$SIDOPT" "$OUTOPT" "$EOPT" "${args[@]}" -w 1 &
+    $UNINST_CMD python "$DVBEVREC" "$CHOPT" "$SIDOPT" "$OUTOPT" "$EOPT" "${args[@]}" --shrink_pat -w 1 &
     exit 0
 fi
 
@@ -171,5 +171,5 @@ if [ x'$CLEANUP' != x ]; then
         ps -p \$p -o cmd= | egrep -e '$CLEANUP' >& /dev/null && kill \$p >& /dev/null
     done
 fi
-ionice -c 2 -n 0 $UNINST_CMD python "$DVBEVREC" -v "$CHOPT" "$SIDOPT" "$OUTOPT" \$EOPT ${args[@]}
+ionice -c 2 -n 0 $UNINST_CMD python "$DVBEVREC" -v --shrink_pat "$CHOPT" "$SIDOPT" "$OUTOPT" \$EOPT ${args[@]}
 EOT

@@ -33,7 +33,7 @@ class CLI_Main:
 		self.pipeline.add(dvb)
 		self.pipeline.add(valve)
 		self.pipeline.add(fdsink)
-		dvb.get_request_pad("src0")
+		# dvb.get_request_pad("src0")
 		tsparse = dvb.get_by_name("mpegtsparse2-0")
 		tsparse.set_property("bcas", True)
 		dvb.link(valve)
@@ -61,7 +61,7 @@ class CLI_Main:
 
 	def dprint(self, txt):
 		if self.verbose:
-			print(time.strftime("%Y-%m-%d %H:%M.%S") + txt, file=sys.stderr, flush=True)
+			print(time.strftime("%Y-%m-%d %H:%M.%S ") + txt, file=sys.stderr, flush=True)
 
 	def quit(self):
 		self.pipeline.set_state(Gst.State.NULL)
@@ -410,6 +410,14 @@ class CLI_Main:
 			wait = 30
 		GLib.timeout_add_seconds(wait * 60, self.on_timer)
 
+	def reconnect(self):
+		dvb = self.pipeline.get_by_name("dvbbasebin")
+		valve = self.pipeline.get_by_name("valve")
+		dvb.unlink(valve)
+		dpad = dvb.get_request_pad("program_{:d}".format(self.svc_id))
+		vpad = valve.get_static_pad("sink")
+		dpad.link(vpad)
+		self.dprint("Using dvbbasebin.program_{:d}".format(self.svc_id))
 
 #
 # helper func.
@@ -491,6 +499,10 @@ parser.add_option("--conf",
 					" [default:~/.config/gstreamer-%d.0/"
 					"dvb-channels.conf]" % Gst.version()[0])
 
+parser.add_option("--shrink_pat",
+					action="store_true",
+					help="rewrite PAT to contain just one program. [default: False]")
+
 (options, args) = parser.parse_args()
 mainclass = None
 try:
@@ -524,7 +536,7 @@ try:
 	else:
 		ev_id = None
 		if options.wait is None:
-			options.wait = 3
+			options.wait = 5
 
 	if options.eventid and (ev_id < 0 or ev_id >= 0x10000):
 		parser.error("invalid event_id:%d." % ev_id)
@@ -535,6 +547,8 @@ try:
 		parser.error("(channel:%s, service_id:%s) is not a valid combination."
 			% (options.channel, options.serviceid))
 	mainclass.svc_id = sid
+	if options.shrink_pat:
+		mainclass.reconnect()
 	mainclass.pipeline.get_by_name("dvbbasebin").set_uri("dvb://%s" % ch_name)
 
 	loop = GLib.MainLoop()

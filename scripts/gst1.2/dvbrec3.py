@@ -24,7 +24,7 @@ class CLI_Main:
 		fdsink.set_property("sync", False)
 		self.pipeline.add(dvb)
 		self.pipeline.add(fdsink)
-		dvb.get_request_pad("src0")
+		# dvb.get_request_pad("src0")
 		dvb.link(fdsink)
 		tsparse = dvb.get_by_name("mpegtsparse2-0")
 		tsparse.set_property("bcas", True)
@@ -62,6 +62,15 @@ class CLI_Main:
 		GLib.timeout_add_seconds(self.len, self.on_stop_timer)
 		self.dprint("Started to record (for %d [sec.]) ..." % self.len)
 		return False
+
+	def reconnect(self):
+		dvb = self.pipeline.get_by_name("dvbbasebin")
+		fdsink = self.pipeline.get_by_name("fdsink")
+		dvb.unlink(fdsink)
+		dpad = dvb.get_request_pad("program_{:d}".format(self.svc_id))
+		fpad = fdsink.get_static_pad("sink")
+		dpad.link(fpad)
+		self.dprint("Using dvbbasebin.program_{:d}".format(self.svc_id))
 
 	def main(self):
 		self.playmode = True
@@ -161,6 +170,9 @@ parser.add_option("-t", "--start",
 					help="start recording at TIME in localtime. [default: now]  "
 							"Format of TIME: %Y-%m-%dT%H:%M:%S")
 
+parser.add_option("--shrink_pat",
+					action="store_true",
+					help="rewrite PAT to contain just one program. [default: False]")
 
 (options, args) = parser.parse_args()
 mainclass = None
@@ -202,6 +214,9 @@ try:
 	if ch_name is None or sid is None:
 		parser.error("(channel:%s, service_id:%s) is not a valid combination."
 			% (options.channel, options.serviceid))
+	mainclass.svc_id = sid
+	if options.shrink_pat:
+		mainclass.reconnect()
 	mainclass.pipeline.get_by_name("dvbbasebin").set_uri("dvb://%s" % ch_name)
 
 	loop = GLib.MainLoop()

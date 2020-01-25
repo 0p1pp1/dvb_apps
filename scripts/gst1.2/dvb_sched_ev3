@@ -91,6 +91,11 @@ while [ "$1" != "" ]; do
     shift
 done
 
+if [ -z "$OUTOPT" ]; then
+    echo 'No output file specified... using the default "~/out.ts".' 1>&2
+    OUTOPT="--output=~/out.ts"
+fi
+
 # derive some parameters
 FE_FILE="/dev/dvb/adapter${ADAPTER}/frontend${FRONTEND}"
 # FIXME: use demuxN instead?

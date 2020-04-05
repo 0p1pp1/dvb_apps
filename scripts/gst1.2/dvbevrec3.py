@@ -147,6 +147,10 @@ class CLI_Main:
 				self.dprint("broken EIT. no/bad section-number.");
 				return;
 
+			self.dprint("EIT. ID:%s sec:%s ver:%s" %
+					(event.event_id,
+					 sec.section_number,
+					 sec.version_number))
 			if self.ev_id is None and \
 			   self.is_target(sec.section_number == 0, tm, dur):
 				self.ev_id = event.event_id
@@ -195,7 +199,8 @@ class CLI_Main:
 			if self.ev_id is None:
 				return
 
-			if self.ev_id == self.eit_eid_present:
+			if sec.section_number == 0 and \
+			   self.ev_id == self.eit_eid_present:
 				self.found_ev = True
 				if self.ev_start is None and tm.get_year() != 1900:
 					self.ev_start = tm.to_unix()
@@ -203,7 +208,8 @@ class CLI_Main:
 				self.tsid = eit.transport_stream_id
 				self.check_relay(eit)
 				return
-			elif self.ev_id == self.eit_eid_following:
+			elif sec.section_number == 1 and \
+			     self.ev_id == self.eit_eid_following:
 				self.found_ev = True
 				if self.ev_start is None and tm.get_year() != 1900:
 					self.ev_start = tm.to_unix()
@@ -212,7 +218,7 @@ class CLI_Main:
 				#   in this case, the start time is set to the past.
 				# (assert the updated EIT is the "following" one)
 				now = time.time()
-				if sec.section_number == 1 and self.ev_start and \
+				if self.ev_start and \
 				   self.ev_start >= now and self.ev_start - 5 <= now:
 					self.valve(False)
 				else:
@@ -229,6 +235,15 @@ class CLI_Main:
 
 				# check if in state for initial waiting
 				if not self.found_ev:
+					return
+				if sec.section_number == 1 and \
+				   self.ev_id != self.eit_eid_present and \
+				   self.eit_ver_present != self.eit_ver_following:
+					return
+
+				# wait until next EIT (section) update
+				if self.ev_id == self.eit_eid_present or \
+				   self.ev_id == self.eit_eid_following:
 					return
 
 				# check if a relayed-event exists

@@ -87,26 +87,16 @@ class CLI_Main:
 			(present, time.ctime(tm.to_unix()), dur))
 		dur_undef = 165 * 3600 + 165 * 60 + 165 # FF:FF:FF as BCD
 		if present:
-			# if dur is undefined (extending) and
-			#    EIT/f has been already recved: eit_eid_folloing != None
-			#      and was not set as target: self.ev_id != eit_eid_following
-			#  then set this EIT/p as the target
-			#    if EIT/f is not recved yet, then defer the decision
-			#    until the next EIT/f  by leaving self.ev_id None for now
-			if dur == dur_undef and self.eit_eid_following:
-				return True
-
-			# if dur is defined (thus end-time is defined) and
-			#   not ending too soon(120sec), then select this EIT/p
-			# extra 120sec margin is necessary as this script can/should be
+			# if dur is un-defined (extending) or
+			#   not ending too soon(60sec), then select this EIT/p.
+			# extra 60sec margin is necessary, as this script can/should
 			#  run shortly before the target event starts.
-			if dur != dur_undef and tm.to_unix() + dur > time.time() + 120 \
-			    and self.eit_eid_following:
+			if dur == dur_undef or tm.to_unix() + dur > time.time() + 60:
 				return True
 		else:
 			# if this EIT/f is starting very soon, select this EIT/f
 			#  but firstly check if start-time is undef (delaying): 1900-0-0-....
-			if tm.get_year() != 1900 and tm.to_unix() < time.time() + 120:
+			if tm.get_year() != 1900 and tm.to_unix() < time.time() + 60:
 				return True
 
 		return False
@@ -189,11 +179,6 @@ class CLI_Main:
 					self.eit_name_following = "???"
 				else:
 					self.eit_name_following = evname
-
-			if self.eit_eid_present and self.eit_eid_following and \
-			   self.ev_id is None:
-				self.ev_id = self.eit_eid_present
-				self.dprint("selected event:%s ..." % self.ev_id)
 
 			# if event is still not identified, then return & wait subsequent EITs
 			if self.ev_id is None:

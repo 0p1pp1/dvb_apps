@@ -26,6 +26,11 @@ class CLI_Main:
 	def __init__(self):
 		self.pipeline = Gst.Pipeline()
 		dvb = Gst.ElementFactory.make("dvbbasebin", "dvbbasebin")
+		tsparse = dvb.get_by_name("mpegtsparse2-0")
+		tsparse.set_property("bcas", True)
+		# For event-relay recordings to be properly cocatenated,
+		#    we need to use SEGMENT_FORMAT_TIME.
+		tsparse.set_property("set_timestamps", True)
 		valve = Gst.ElementFactory.make("valve", "valve")
 		valve.set_property("drop", True)
 		fdsink = Gst.ElementFactory.make("fdsink", "fdsink")
@@ -33,9 +38,6 @@ class CLI_Main:
 		self.pipeline.add(dvb)
 		self.pipeline.add(valve)
 		self.pipeline.add(fdsink)
-		# dvb.get_request_pad("src0")
-		tsparse = dvb.get_by_name("mpegtsparse2-0")
-		tsparse.set_property("bcas", True)
 		dvb.link(valve)
 		valve.link(fdsink)
 		self.eit_ver_present = None
@@ -51,6 +53,8 @@ class CLI_Main:
 		self.next_tsid = None
 		self.recording = False
 		self.verbose = False
+		self.shrink_pat = False
+		self.conffile = None
 		self.found_ev = False
 		self.len = None
 		self.loop = None
@@ -213,6 +217,11 @@ class CLI_Main:
 				return
 			else:
 				# check if in transient state for unplanned pause/break-ins
+
+				# EITp has been updated first before EITf
+				#     to a new event (!self.ev_id).
+				# Wait for the EITf update and
+				#   check if it == ev_id, i.e. pause/break-in.
 				if self.recording and sec.section_number == 0 and \
 				   self.eit_ver_present != self.eit_ver_following:
 					self.valve(True)
@@ -221,9 +230,14 @@ class CLI_Main:
 				# check if in state for initial waiting
 				if not self.found_ev:
 					return
+
+				# EITf has been updated before EITp and
+				#    self.ev_id != eid_following (new value) &
+				#    self.ev_id != eid_present (old value).
+				# Wait for the next EITp updated (to be ev_id).
 				if sec.section_number == 1 and \
-				   self.ev_id != self.eit_eid_present and \
-				   self.eit_ver_present != self.eit_ver_following:
+				   self.eit_ver_present != self.eit_ver_following and \
+				   self.ev_id != self.eit_eid_present:
 					return
 
 				# wait until next EIT (section) update
@@ -232,7 +246,7 @@ class CLI_Main:
 					return
 
 				# check if a relayed-event exists
-				if self.recording and self.next_eid:
+				if self.found_ev and self.next_eid:
 					self.switch_ev()
 					return
 
@@ -261,15 +275,14 @@ class CLI_Main:
 			return
 
 		eg = desc.parse_event_group()
-		if not eg[0]  or eg[1] is None or eg[1].event_count < 1:
+		if not eg[0]  or eg[1] is None or len(eg[1].events) < 1:
 			return
 		if eg[1].group_type != GstMpegts.EventGroupType.MOVED_FROM_INTERNAL:
 			return
 
-		for i in range(eg.event_count):
-			src = eg[1].events[i]
+		for src in eg[1].events:
 			if src.service_id == self.svc_id and src.event_id == self.ev_id:
-				self.dprint("the evnet:{0}[0x{1:04x}] moved."
+				self.dprint("the evnet:{0}[svc:{1}] moved."
 					" switching...".format(src.event_id, src.service_id))
 				self.next_svcid = sid
 				self.next_eid = ev.event_id
@@ -294,7 +307,7 @@ class CLI_Main:
 			return
 
 		eg = desc.parse_event_group()
-		if not eg[0]  or eg[1] is None or eg[1].event_count < 1:
+		if not eg[0]  or eg[1] is None or len(eg[1].events) < 1:
 			return
 		if eg[1].group_type == GstMpegts.EventGroupType.RELAYED_TO_INTERNAL or \
 		   eg[1].group_type == GstMpegts.EventGroupType.RELAYED_TO:
@@ -303,34 +316,45 @@ class CLI_Main:
 				return
 			self.next_svcid = eg[1].events[0].service_id
 			self.next_eid = eg[1].events[0].event_id
-			if eg[1].group_type == GstMpegts.EventGroupType.RELAED_TO and \
+			if eg[1].group_type == GstMpegts.EventGroupType.RELAYED_TO and \
 			   eg[1].events[0].transport_stream_id > 0:
 				self.next_tsid = eg[1].events[0].transport_stream_id
 			else:
 				self.next_tsid = None
+			self.dprint("will be relayed to ev:{0.next_eid}"
+				    "(svc:{0.next_svcid}) ts:{0.next_tsid}".
+				    format(self))
 		return
 
 
 	def switch_ev(self):
+		self.dprint("relaying to the next event {0.next_eid}"
+			    "[{0.next_svcid}] ts:{0.next_tsid}.".format(self));
 		self.valve(True)
-		self.pipeline.set_state(Gst.State.PAUSED)
-		self.dprint("relaying to the next event {0}[0x{1:04x}]." \
-				.format(self.next_svcid, self.next_eid));
+		self.pipeline.set_state(Gst.State.READY)
+		self.pipeline.get_state(Gst.CLOCK_TIME_NONE)
+
 		self.found_ev = False
 		self.eit_ver_present = None
 		self.eit_eid_present = None
 		self.eit_ver_following = None
 		self.eit_eid_following = None
-		self.ev_id = self.next_eid;
+		self.ev_id = self.next_eid
 		self.next_eid = None
 		self.svc_id = self.next_svcid
 		self.next_svcid = None
 		self.tsid = self.next_tsid
 		self.next_tsid = None
 
+		vpad = self.pipeline.get_by_name("valve").get_static_pad("sink")
+		dvb = self.pipeline.get_by_name("dvbbasebin")
+		if self.shrink_pat:
+			dpad = vpad.get_peer()
+			dpad.unlink(vpad)
+			dvb.release_request_pad(dpad)
+
 		if self.tsid is not None: # relay to another TS
-			fname = None if options is None else options.confname
-			ch = check_channel(None, self.svc_id, fname)[0]
+			ch = check_channel(None, self.svc_id, self.conffile)[0]
 			if ch is None:
 				# maybe relayed to a temporary service
 				self.watch_pat = True
@@ -347,9 +371,15 @@ class CLI_Main:
 					file=sys.stderr)
 				self.quit()
 				return
-			self.pipeline.get_by_name("dvbbasebin").set_uri("dvb://%s" % ch)
+			dvb.set_uri("dvb://%s" % ch)
+			dvb.set_property("tune", None)
 
-		self.pipeline.get_by_name("dvbbasebin").set_property("program-numbers", self.svc_id)
+		dvb.set_property("program-numbers", self.svc_id)
+
+		if self.shrink_pat:
+			dpad = dvb.get_request_pad("program_{:d}".
+							format(self.svc_id))
+			dpad.link(vpad)
 		self.pipeline.set_state(Gst.State.PLAYING)
 		return
 
@@ -412,10 +442,9 @@ class CLI_Main:
 
 	def reconnect(self):
 		dvb = self.pipeline.get_by_name("dvbbasebin")
-		valve = self.pipeline.get_by_name("valve")
-		dvb.unlink(valve)
+		vpad = self.pipeline.get_by_name("valve").get_static_pad("sink")
+		dpad = vpad.get_peer().unlink(vpad)
 		dpad = dvb.get_request_pad("program_{:d}".format(self.svc_id))
-		vpad = valve.get_static_pad("sink")
 		dpad.link(vpad)
 		self.dprint("Using dvbbasebin.program_{:d}".format(self.svc_id))
 
@@ -523,6 +552,7 @@ try:
 			mainclass.pipeline.get_by_name("fdsink").set_property("fd", f.fileno())
 		except:
 			parser.error("file:%s cannot be opened for writing", options.filename)
+	mainclass.conffile = options.filename
 
 	if options.adapter:
 		mainclass.pipeline.get_by_name("dvbbasebin").set_property("adapter", options.adapter)
@@ -547,6 +577,7 @@ try:
 		parser.error("(channel:%s, service_id:%s) is not a valid combination."
 			% (options.channel, options.serviceid))
 	mainclass.svc_id = sid
+	mainclass.shrink_pat = options.shrink_pat
 	if options.shrink_pat:
 		mainclass.reconnect()
 	mainclass.pipeline.get_by_name("dvbbasebin").set_uri("dvb://%s" % ch_name)

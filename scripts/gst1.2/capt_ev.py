@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os.path
-import glib
 import gi
-import gi.module
 gi.require_version('Gst', '1.0')
 gi.require_version('GstMpegts', '1.0')
 from gi.repository import GLib, GObject, Gst, GstMpegts
@@ -99,7 +97,7 @@ bus = pipeline.get_bus()
 bus.add_signal_watch()
 bus.connect('message', on_message)
 
-loop = glib.MainLoop()
+loop = GLib.MainLoop()
 pipeline.set_state(Gst.State.PLAYING)
 try:
 	loop.run()

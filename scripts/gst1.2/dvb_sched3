@@ -3,8 +3,7 @@ now=$(date '+%s %Y-%m-%d')
 today=${now#?* }
 now=${now% ?*}
 
-# UNINST_CMD=~/bin/gst-1.0
-UNINST_CMD=/home/tsukada/bin/gst-uninst-ni
+UNINST_CMD=${UNINST_CMD:-${HOME}/bin/gst-uninst-ni}
 DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
 DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
 DVBREC=${DVBREC:-"$DVB_SCRIPTS_DIR"/dvbrec3.py}

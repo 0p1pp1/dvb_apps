@@ -50,7 +50,7 @@ fi
 
 if [ x"$tm" == x ] || [ $(($tm + 60)) -le $now ]; then
     echo "Invalid time specified." 1>&2
-    echo "Try dvbevrec2.py if you want to record an program on the air now." 1>&2
+    echo "Try $(basename $DVBEVREC) if you want to record an program on the air now." 1>&2
     exit 1
 fi
 

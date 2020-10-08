@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 import sys
+import os
 import os.path
 import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstMpegts', '1.0')
 from gi.repository import GLib, GObject, Gst, GstMpegts
+
+verbose = os.environ.setdefault('DEBUG', 0)
 
 def proc_msg(message):
 	st = message.get_structure()
@@ -15,6 +18,10 @@ def proc_msg(message):
 		sec = GstMpegts.message_parse_mpegts_section(message)
 		eit = sec.get_eit()
 		events = eit.events
+		if verbose and eit.actual_stream and eit.present_following:
+			print("EIT p/f:{} ver:{} eid:{} sid:{}".format(
+			sec.section_number, sec.version_number,
+			eit.events[0].event_id, sec.subtable_extension))
 	except (AttributeError, KeyError):
 		sys.stderr.write('******* no events included.\n')
 		return

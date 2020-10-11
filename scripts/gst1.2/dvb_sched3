@@ -15,7 +15,7 @@ FRONTEND=0
 if [ $# -lt 3 ]; then
     echo "Usage: $0
 	    <HH:MM> [<YYYY-mm-dd>] {-c <CHANNEL_NAME> | -s <SERVICE_ID>}
-	    [-k all|none|<name>]...
+	    -l <recording_length_in_min> [-k all|none|<name>]...
 see also ${DVBEVREC##*/} -h" 1>&2
     exit 1
 fi
@@ -56,7 +56,7 @@ fi
 CLEANUP=
 CHOPT=
 OUTOPT=
-LENGTH=
+LENGTH=60
 LENOPT=
 T_ERROR_MSG="you cannot specify -t/--start option with $0. ignoring..."
 # (channel-name & output-file-name are saved to be quoted in the at script)
@@ -96,14 +96,14 @@ esac
 
 [ x"$CH" != x ] && CHOPT="--channel=$CH"
 
-if [ -n "$LENGTH" ] && [ $LENGTH -le 0 ]; then
-    echo "Invalid value [$LENGTH] in -l option." 1>&2
+if [ -z "$LENGTH" ] || [ $LENGTH -le 0 ]; then
+    echo "Invalid/missing value for -l option." 1>&2
     exit 1
 fi
 
-[ $tm -lt $now ] && [ -n "$LENGTH" ] && LENGTH=$(($LENGTH - ( $now - $tm ) / 60))
-[ x"$LENGTH" != x ] && LENOPT="--length=$LENGTH"
-if [ $(($tm + 60 * ${LENGTH:-60})) -lt $now ]; then
+[ $tm -lt $now ] && LENGTH=$(($LENGTH - ( $now - $tm ) / 60))
+LENOPT="--length=$LENGTH"
+if [ $(($tm + 60 * ${LENGTH})) -lt $now ]; then
     echo "The start time is already past too far." 1>&2
     exit 0
 fi
@@ -120,27 +120,31 @@ if [ $(($tm - 60)) -lt $(date +%s) ]; then
 fi
 
 at $TIME - 1 minutes <<-EOT
-tm=\$(date +%s --date "$TIME" 2> /dev/null)
-now=\$(date +%s)
-
-LOPT=
-LEN="$LENGTH"
-if [ \$tm -lt \$now ] && [ x"\$LEN" != x ]; then
-    \$LEN=\$((\$LEN - ( \$now - \$tm ) / 60))
-fi
-[ x"\$LEN" != x ] && LOPT="--length=\$LEN"
-
-if [ \$((\$tm + 60 * \${LEN:-60})) -lt \$now ]; then
-    echo 'already past the time [${TIME}] to start recording.'
-    exit 1
-fi
-
 fuser -s "$FE_FILE" 2>/dev/null && sleep 45
 if [ x'$CLEANUP' != x ]; then
     for p in \$(fuser "$FE_FILE" 2>/dev/null); do
         ps -p \$p -o cmd= | egrep -e '$CLEANUP' >& /dev/null && kill \$p >& /dev/null
     done
 fi
+
+tm=\$(date +%s --date "$TIME" 2> /dev/null)
+now=\$(date +%s)
+LOPT=
+LEN="${LENGTH:-60}"
+
+if [ \$tm -lt \$now ]; then
+    LEN=\$((\$LEN - ( \$now - \$tm ) / 60))
+fi
+if [ \$tm -gt \$now ]; then
+    LEN=\$((\$LEN + ( \$tm + 50 - \$now ) / 60))
+fi
+
+if [ \$((\$tm + 60 * \$LEN)) -lt \$now ]; then
+    echo 'already past the time [${TIME}] to end recording.'
+    exit 1
+fi
+
+LOPT="--length=\$LEN"
 $UNINST_CMD python "$DVBREC" --shrink_pat "$CHOPT" "$OUTOPT" -t $STARTOPT \$LOPT ${args[@]}
 EOT
 

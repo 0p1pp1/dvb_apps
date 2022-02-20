@@ -12,6 +12,14 @@ DVB用ツール集
 
 変更履歴
 ----------------
+ver1.3
+ - scripts/gst1.2からscripts/gst1.xへディレクトリ名を変更
+ scripts/gst1.2/dvb{,ev}rec3.py
+ - gsreamer >= 1.20で動作するように修正(deprecatedになったAPIの変更)
+   gstreamer < 1.20で実行するとエラーになるので注意。
+   その場合は以前のgst1.2/を使えば良い
+
+----------------
 ver1.2
  scripts/gst1.2/
  - gstreamer <= 1.6で動作するように修正

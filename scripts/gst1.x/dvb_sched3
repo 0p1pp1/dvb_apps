@@ -3,9 +3,9 @@ now=$(date '+%s %Y-%m-%d')
 today=${now#?* }
 now=${now% ?*}
 
-UNINST_CMD=${UNINST_CMD:-${HOME}/bin/gst-uninst-ni}
-DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/bin/dvb_apps}
-DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.2}
+UNINST_CMD=${UNINST_CMD:-${HOME}/git/gstreamer/gst-env.py}
+DVB_APPS_BASEDIR=${DVB_APPS_BASEDIR:-~/git/dvb_apps}
+DVB_SCRIPTS_DIR=${DVB_SCRIPTS_DIR:-"$DVB_APPS_BASEDIR"/scripts/gst1.x}
 DVBREC=${DVBREC:-"$DVB_SCRIPTS_DIR"/dvbrec3.py}
 
 #default param

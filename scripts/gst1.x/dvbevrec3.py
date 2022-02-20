@@ -377,7 +377,7 @@ class CLI_Main:
 		dvb.set_property("program-numbers", self.svc_id)
 
 		if self.shrink_pat:
-			dpad = dvb.get_request_pad("program_{:d}".
+			dpad = dvb.request_pad_simple("program_{:d}".
 							format(self.svc_id))
 			dpad.link(vpad)
 		self.pipeline.set_state(Gst.State.PLAYING)
@@ -444,7 +444,7 @@ class CLI_Main:
 		dvb = self.pipeline.get_by_name("dvbbasebin")
 		vpad = self.pipeline.get_by_name("valve").get_static_pad("sink")
 		dpad = vpad.get_peer().unlink(vpad)
-		dpad = dvb.get_request_pad("program_{:d}".format(self.svc_id))
+		dpad = dvb.request_pad_simple("program_{:d}".format(self.svc_id))
 		dpad.link(vpad)
 		self.dprint("Using dvbbasebin.program_{:d}".format(self.svc_id))
 

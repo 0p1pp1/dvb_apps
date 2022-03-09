@@ -114,7 +114,7 @@ setparam:
 		TS_IDX++;
 		break;
 	case BS:
-		if (TS_OFFSET > 3) {
+		if (TS_OFFSET > 7) {
 			TS_OFFSET = 0;
 			TS_IDX ++;
 		}
